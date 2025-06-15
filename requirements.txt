@@ -1,0 +1,8 @@
+Flask
+pymongo
+gridfs
+python-dotenv
+pandas
+google-generativeai
+Werkzeug
+bson

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyMap - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        .upload-area {
+            background: #f8f9fa;
+            border: 2px dashed #667eea;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .upload-area:hover {
+            background: #e9ecef;
+        }
+        .navbar {
+            background-color: yellow !important; /* Yellow background for the navbar */
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a6fd1;
+        }
+
+        /* Toast Notification Styling */
+        
+        #toast {
+        position: fixed;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1055;  /* Higher than other elements */
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">MoneyMap</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">MoneyMap</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="btn btn-danger ms-lg-3" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> <!-- Logout Icon -->
+                            <span class="d-none d-lg-inline">Logout</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-lg-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right"></i> <!-- Login Icon -->
+                            <span class="d-none d-lg-inline">Login</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero Section -->
+    <header class="hero-section py-5">
+        <br>
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">Analyze Finances Smartly</h1>
+                    <p class="lead mb-4">Upload your files to begin your financial analysis</p>
+                </div>
+                <div class="col-lg-8">  
+                    <!-- File Upload Form -->
+                    <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                        <div class="upload-area text-center p-5 border rounded shadow-lg">
+                            <input type="file" id="fileElem" name="file" style="display: none;" onchange="fileUploaded()">
+                            <label for="fileElem" class="d-block">
+                                <div class="icon mb-3">
+                                    <i class="bi bi-cloud-upload" style="font-size: 40px;"></i>
+                                </div>
+                                <p>Click to upload or drag and drop<br>Any .xlsx file</p>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Upload</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Action Buttons Section -->
+<section class="py-5 text-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-auto">
+                <a href="{{ url_for('analyze') }}"><button class="btn btn-primary btn-lg">Analyze</button></a>
+            </div>
+            <div class="col-auto">
+                <a href="{{ url_for('prediction') }}"><button class="btn btn-primary btn-lg">Predictions</button></a>
+            </div>
+        </div>
+    </div>
+</section>
+
+    
+    <!-- JavaScript: Bootstrap & Toast Initialization -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize the toast element
+      const toastEl = document.getElementById('toast');
+      const toast = new bootstrap.Toast(toastEl);
+      
+      // Check for flashed messages from Flask
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            // Set the toast body text with the flashed message
+            const toastBody = document.querySelector('.toast-body');
+            toastBody.textContent = {{ message | tojson }};
+            toast.show();
+            
+            // Optionally, enable the Analyze and Predictions buttons on successful upload
+            if ("{{ category }}" === "success") {
+              document.getElementById('analyzeBtn').disabled = false;
+              document.getElementById('predictBtn').disabled = false;
+            }
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+    });
+    </script>
+</body>
+</html>

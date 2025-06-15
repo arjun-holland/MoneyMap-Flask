@@ -1,0 +1,17 @@
+# Ignore environment config
+.env
+
+# Bytecode files
+__pycache__/
+*.py[cod]
+
+# VS Code workspace settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependency folders (if created)
+venv/
+.env/

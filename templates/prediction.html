@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoneyMap - Chat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .navbar {
+            background-color: yellow !important; /* Yellow background for the navbar */
+        }
+
+        .chat-container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #667eea;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .bot-message {
+            background: #e9ecef;
+            color: #333;
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .input-group {
+            padding: 15px;
+            background: #fff;
+        }
+
+        .input-group input {
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group button {
+            background: #667eea;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-left: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .input-group button:hover {
+            background: #5a6fd1;
+        }
+
+        /* Scrollbar styling */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #5a6fd1;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">MoneyMap</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="btn btn-danger ms-lg-3" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> <!-- Logout Icon -->
+                            <span class="d-none d-lg-inline">Logout</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-lg-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right"></i> <!-- Login Icon -->
+                            <span class="d-none d-lg-inline">Login</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            Chat with AI
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Chat messages will appear here -->
+            <div class="message bot-message">
+                <strong>AI:</strong> Hello! How can I assist you with your financial transactions today?
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-group">
+            <input type="text" id="user-input" class="form-control" placeholder="Ask a question about your transactions...">
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (!userInput) return;
+
+            // Add user's message to the chat
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML += `<div class="message user-message"><strong>You:</strong> ${userInput}</div>`;
+
+            // Send the question to the server
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: userInput }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Add AI's response to the chat
+                chatMessages.innerHTML += `<div class="message bot-message"><strong>AI:</strong> ${data.answer}</div>`;
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                chatMessages.innerHTML += `<div class="message bot-message"><strong>AI:</strong> Sorry, something went wrong. Please try again.</div>`;
+            });
+
+            // Clear the input field
+            document.getElementById('user-input').value = '';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            padding: 2rem;
+            padding-top: 70px; /* Add padding to body to account for fixed navbar */
+        }
+
+        .navbar {
+            background-color: yellow !important; /* Yellow background for the navbar */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Add shadow for better visibility */
+        }
+
+        .navbar-brand, .nav-link {
+            color: #000 !important; /* Ensure text is readable on yellow background */
+        }
+
+        .navbar-toggler {
+            border-color: #000; /* Dark border for the toggler icon */
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 0, 0, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+        }
+
+        .btn-danger {
+            background-color: #ff4c93;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: #e63e7b;
+        }
+
+        .btn-primary {
+            background-color: #667eea;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #5a6fd1;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            color: #333;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">MoneyMap</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="btn btn-danger ms-lg-3" href="/logout">
+                            <i class="bi bi-box-arrow-right"></i> <!-- Logout Icon -->
+                            <span class="d-none d-lg-inline">Logout</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-lg-3" href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right"></i> <!-- Login Icon -->
+                            <span class="d-none d-lg-inline">Login</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="text-center mb-5">This is the money analysis of your credit and debit</h1>
+        <div class="charts-container">
+            <div class="chart-card">
+                <h2 class="chart-title">Credit Transactions (Donut)</h2>
+                <div class="chart-wrapper">
+                    <div id="creditDonutChart"></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Debit Transactions (Donut)</h2>
+                <div class="chart-wrapper">
+                    <div id="debitDonutChart"></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Credit Transactions (Pie)</h2>
+                <div class="chart-wrapper">
+                    <div id="creditPieChart"></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h2 class="chart-title">Debit Transactions (Pie)</h2>
+                <div class="chart-wrapper">
+                    <div id="debitPieChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fetch data from the /data route
+        fetch('/data')
+            .then(response => response.json())
+            .then(data => {
+                const baseLayout = {
+                    showlegend: true,
+                    legend: {
+                        orientation: 'h',
+                        yanchor: 'bottom',
+                        y: -0.3,
+                        xanchor: 'center',
+                        x: 0.5
+                    },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    margin: { t: 0, b: 0, l: 0, r: 0 },
+                    height: 300,
+                    width: 300
+                };
+
+                const creditColors = ['#4C6FFF', '#E6E6FA'];
+                const debitColors = ['#FF4C93', '#FFE4E1'];
+
+                function createChart(elementId, values, labels, colors, hole = 0) {
+                    Plotly.newPlot(elementId, [{
+                        values: values,
+                        labels: labels,
+                        type: 'pie',
+                        hole: hole,
+                        marker: {
+                            colors: colors
+                        },
+                        textinfo: 'percent',
+                        textposition: 'inside'
+                    }], baseLayout);
+                }
+
+                // Credit Donut Chart
+                createChart('creditDonutChart', [data.credit, 100 - data.credit], ['Credit', 'Remaining'], creditColors, 0.7);
+
+                // Debit Donut Chart
+                createChart('debitDonutChart', [data.debit, 100 - data.debit], ['Debit', 'Remaining'], debitColors, 0.7);
+
+                // Credit Pie Chart
+                createChart('creditPieChart', [data.credit, 100 - data.credit], ['Credit', 'Remaining'], creditColors);
+
+                // Debit Pie Chart
+                createChart('debitPieChart', [data.debit, 100 - data.debit], ['Debit', 'Remaining'], debitColors);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    </script>
+</body>
+</html>
